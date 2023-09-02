@@ -1,0 +1,36 @@
+{
+  "questionPatterns": {
+    "general": 6,
+    "definition": 2
+  },
+  "topicPreferences": {
+    "science": 8,
+    "artificial intelligence": 6
+  },
+  "responseQuality": {},
+  "sessionData": {
+    "default": {
+      "startTime": "2025-08-09T15:51:13.519Z",
+      "questionCount": 8,
+      "avgQuestionLength": 11.5,
+      "topics": [
+        "science",
+        "artificial intelligence"
+      ],
+      "patterns": [
+        "general",
+        "general",
+        "general",
+        "general",
+        "general",
+        "definition",
+        "general",
+        "definition"
+      ]
+    }
+  },
+  "learningMetrics": {},
+  "message": "User Behavior Analytics Data",
+  "initialized": true,
+  "timestamp": "2025-01-08T00:00:00.000Z"
+}

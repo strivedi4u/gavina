@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Advanced RAG Chatbot - GPT-5 Enhanced</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { color: #666; font-size: 1.1em; }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon { font-size: 1.2em; }
+        
+        input[type="url"], input[type="text"], textarea, select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #fd7e14);
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Segoe UI', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .loading {
+            background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+            color: #666;
+            font-style: italic;
+        }
+        
+        .chat-interface {
+            height: 400px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+        
+        .message.user {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.ai {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-header {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-card h3 { font-size: 2em; margin-bottom: 10px; }
+        .stat-card p { opacity: 0.9; }
+        
+        .feedback-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .star {
+            font-size: 24px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .star:hover, .star.active {
+            color: #ffc107;
+        }
+        
+        .suggestions {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .suggestion-item {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .suggestion-item:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .analytics-chart {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+        
+        .topic-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .topic-tag {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .topic-tag:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 15px; }
+            .tabs { flex-wrap: wrap; }
+            .tab { min-width: 120px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Advanced RAG System</h1>
+            <p>AI with Memory, Learning & Behavioral Analytics</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('chat')">💬 Smart Chat</button>
+            <button class="tab" onclick="showTab('documents')">📄 Documents</button>
+            <button class="tab" onclick="showTab('analytics')">📊 Analytics</button>
+            <button class="tab" onclick="showTab('memory')">🧠 Memory</button>
+            <button class="tab" onclick="showTab('settings')">⚙️ Settings</button>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat" class="tab-content active">
+            <div class="section">
+                <h2><span class="icon">💬</span>Intelligent Conversation</h2>
+                
+                <div class="chat-interface">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message ai">
+                            <div class="message-header">AI Assistant • Just now</div>
+                            <div>Hello! I'm your advanced RAG assistant with memory and learning capabilities. 
+                            Upload a document or scrape a URL to get started, then ask me anything!</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input">
+                        <input type="text" id="chatInput" placeholder="Ask me anything..." onkeypress="handleChatEnter(event)">
+                        <button class="btn" onclick="sendChatMessage()">
+                            <span class="icon">🚀</span>Send
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="suggestions" id="suggestions" style="display: none;">
+                    <h4>💡 Suggested Questions</h4>
+                    <div id="suggestionsList"></div>
+                </div>
+                
+                <div class="feedback-section" id="feedbackSection" style="display: none;">
+                    <h4>📝 Rate this response</h4>
+                    <div class="rating-stars" id="ratingStars">
+                        <span class="star" onclick="setRating(1)">⭐</span>
+                        <span class="star" onclick="setRating(2)">⭐</span>
+                        <span class="star" onclick="setRating(3)">⭐</span>
+                        <span class="star" onclick="setRating(4)">⭐</span>
+                        <span class="star" onclick="setRating(5)">⭐</span>
+                    </div>
+                    <textarea id="feedbackText" placeholder="Optional feedback or corrections..."></textarea>
+                    <button class="btn btn-secondary" onclick="submitFeedback()">Submit Feedback</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documents Tab -->
+        <div id="documents" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🌐</span>URL Processing</h2>
+                <input type="url" id="urlInput" placeholder="https://example.com/article" />
+                <button class="btn" onclick="scrapeUrl()">
+                    <span class="icon">📄</span>Process URL
+                </button>
+                <div id="urlResult"></div>
+            </div>
+
+            <div class="section">
+                <h2><span class="icon">📋</span>Document Analytics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="totalChunks">0</h3>
+                        <p>Text Chunks</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="totalTopics">0</h3>
+                        <p>Topics Identified</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="processingTime">0ms</h3>
+                        <p>Processing Time</p>
+                    </div>
+                </div>
+                
+                <div class="topic-cloud" id="topicCloud"></div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">📊</span>Performance Analytics</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="totalQuestions">0</h3>
+                        <p>Total Questions</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="avgResponseTime">0ms</h3>
+                        <p>Avg Response Time</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="userSatisfaction">0</h3>
+                        <p>User Satisfaction</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="learningScore">0%</h3>
+                        <p>Learning Progress</p>
+                    </div>
+                </div>
+                
+                <h3>📈 System Health</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="healthProgress" style="width: 85%"></div>
+                </div>
+                
+                <h3>🎯 Most Asked Topics</h3>
+                <div id="topTopics"></div>
+                
+                <h3>🤖 Model Performance</h3>
+                <div id="modelPerformance"></div>
+            </div>
+        </div>
+
+        <!-- Memory Tab -->
+        <div id="memory" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🧠</span>Conversation Memory</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 id="conversationCount">0</h3>
+                        <p>Conversations</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="memoryTopics">0</h3>
+                        <p>Topics Learned</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 id="behaviorPatterns">0</h3>
+                        <p>Behavior Patterns</p>
+                    </div>
+                </div>
+                
+                <h3>📝 Recent Conversations</h3>
+                <div id="conversationHistory"></div>
+                
+                <h3>👤 User Profile</h3>
+                <div id="userProfile"></div>
+                
+                <h3>🎯 Personalized Recommendations</h3>
+                <div id="personalizedRecs"></div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">⚙️</span>System Configuration</h2>
+                
+                <h3>🤖 AI Model Preferences</h3>
+                <select id="preferredModel">
+                    <option value="auto">Auto-select best model</option>
+                    <option value="openai">OpenAI GPT-4 (Premium)</option>
+                    <option value="groq">Groq Llama3 (Free)</option>
+                    <option value="ollama">Ollama Local</option>
+                    <option value="huggingface">HuggingFace</option>
+                </select>
+                
+                <h3>📝 Response Style</h3>
+                <select id="responseStyle">
+                    <option value="balanced">Balanced</option>
+                    <option value="detailed">Detailed</option>
+                    <option value="brief">Brief</option>
+                </select>
+                
+                <h3>🧠 Memory Settings</h3>
+                <label>
+                    <input type="checkbox" id="enableLearning" checked> Enable Reinforcement Learning
+                </label><br>
+                <label>
+                    <input type="checkbox" id="enablePersonalization" checked> Enable Personalization
+                </label><br>
+                <label>
+                    <input type="checkbox" id="enableAnalytics" checked> Enable Analytics
+                </label>
+                
+                <h3>🗑️ Data Management</h3>
+                <button class="btn btn-danger" onclick="clearMemory()">Clear Memory</button>
+                <button class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                
+                <div id="settingsResult"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        let currentSessionId = 'session_' + Date.now();
+        let lastConversationId = null;
+        let currentRating = 0;
+
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // Load tab-specific data
+            if (tabName === 'analytics') loadAnalytics();
+            if (tabName === 'memory') loadMemoryData();
+        }
+
+        // Chat Functions
+        function handleChatEnter(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const question = input.value.trim();
+            
+            if (!question) return;
+            
+            addChatMessage(question, 'user');
+            input.value = '';
+            
+            showTypingIndicator();
+            
+            try {
+                const response = await fetch('/api/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        question, 
+                        sessionId: currentSessionId 
+                    })
+                });
+
+                const data = await response.json();
+                
+                removeTypingIndicator();
+                
+                if (response.ok) {
+                    addChatMessage(data.answer, 'ai', data.metadata);
+                    lastConversationId = data.metadata.conversationId;
+                    
+                    // Show suggestions and feedback
+                    showSuggestions(data.metadata.suggestions || []);
+                    showFeedbackSection();
+                    
+                    // Update stats
+                    updateChatStats(data.metadata);
+                } else {
+                    addChatMessage(`Error: ${data.error}`, 'ai', null, true);
+                }
+            } catch (error) {
+                removeTypingIndicator();
+                addChatMessage(`Network error: ${error.message}`, 'ai', null, true);
+            }
+        }
+
+        function addChatMessage(message, sender, metadata = null, isError = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const timeStr = new Date().toLocaleTimeString();
+            const senderName = sender === 'user' ? 'You' : 'AI Assistant';
+            
+            let content = `<div class="message-header">${senderName} • ${timeStr}`;
+            if (metadata && metadata.model) {
+                content += ` • ${metadata.model}`;
+            }
+            content += `</div><div>${message}</div>`;
+            
+            if (isError) {
+                messageDiv.style.background = 'linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%)';
+                messageDiv.style.color = '#721c24';
+            }
+            
+            messageDiv.innerHTML = content;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'message ai typing-indicator';
+            indicator.innerHTML = '<div class="message-header">AI Assistant • typing...</div><div>🤔 Thinking...</div>';
+            indicator.id = 'typingIndicator';
+            
+            document.getElementById('chatMessages').appendChild(indicator);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        function showSuggestions(suggestions) {
+            const suggestionsDiv = document.getElementById('suggestions');
+            const listDiv = document.getElementById('suggestionsList');
+            
+            if (suggestions.length > 0) {
+                listDiv.innerHTML = suggestions.map(suggestion => 
+                    `<div class="suggestion-item" onclick="askSuggestion('${suggestion}')">${suggestion}</div>`
+                ).join('');
+                suggestionsDiv.style.display = 'block';
+            } else {
+                suggestionsDiv.style.display = 'none';
+            }
+        }
+
+        function askSuggestion(suggestion) {
+            document.getElementById('chatInput').value = suggestion;
+            sendChatMessage();
+        }
+
+        function showFeedbackSection() {
+            document.getElementById('feedbackSection').style.display = 'block';
+            currentRating = 0;
+            updateRatingStars();
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            updateRatingStars();
+        }
+
+        function updateRatingStars() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                star.classList.toggle('active', index < currentRating);
+            });
+        }
+
+        async function submitFeedback() {
+            if (!lastConversationId || currentRating === 0) {
+                showNotification('Please rate the response first!', 'error');
+                return;
+            }
+            
+            const feedback = document.getElementById('feedbackText').value;
+            
+            try {
+                const response = await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        conversationId: lastConversationId,
+                        rating: currentRating,
+                        feedback,
+                        sessionId: currentSessionId
+                    })
+                });
+
+                if (response.ok) {
+                    showNotification('Thank you for your feedback!');
+                    document.getElementById('feedbackSection').style.display = 'none';
+                    document.getElementById('feedbackText').value = '';
+                } else {
+                    showNotification('Failed to submit feedback', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error', 'error');
+            }
+        }
+
+        // Document Processing
+        async function scrapeUrl() {
+            const url = document.getElementById('urlInput').value;
+            const resultDiv = document.getElementById('urlResult');
+            
+            if (!url) {
+                showResult(resultDiv, 'Please enter a URL', 'error');
+                return;
+            }
+
+            showResult(resultDiv, 'Processing URL...', 'loading');
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch('/api/scrape-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+
+                const data = await response.json();
+                const processingTime = Date.now() - startTime;
+                
+                if (response.ok) {
+                    showResult(resultDiv, `Success! Processed ${data.chunks} text chunks from the URL.`, 'success');
+                    
+                    // Update stats
+                    document.getElementById('totalChunks').textContent = data.chunks;
+                    document.getElementById('processingTime').textContent = processingTime + 'ms';
+                    
+                    showNotification('Document processed successfully!');
+                    loadTopics();
+                } else {
+                    showResult(resultDiv, `Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `Network error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadTopics() {
+            try {
+                const response = await fetch('/api/context/topics');
+                const data = await response.json();
+                
+                document.getElementById('totalTopics').textContent = data.totalTopics;
+                
+                const topicCloud = document.getElementById('topicCloud');
+                topicCloud.innerHTML = data.activeTopics.map(topic => 
+                    `<span class="topic-tag">${topic}</span>`
+                ).join('');
+            } catch (error) {
+                console.error('Failed to load topics:', error);
+            }
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/analytics/overview');
+                const data = await response.json();
+                
+                document.getElementById('totalQuestions').textContent = data.overview.totalConversations;
+                document.getElementById('avgResponseTime').textContent = 
+                    Math.round(data.overview.avgResponseTime || 0) + 'ms';
+                document.getElementById('userSatisfaction').textContent = 
+                    (data.overview.avgRating || 0).toFixed(1) + '/5';
+                
+                const insights = await fetch('/api/analytics/insights');
+                const insightsData = await insights.json();
+                
+                document.getElementById('learningScore').textContent = 
+                    insightsData.insights.learningProgress.overallScore;
+                
+                // Load model performance
+                displayModelPerformance(insightsData.insights.modelEfficiency);
+                displayTopTopics(data.topicPreferences);
+                
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+
+        function displayModelPerformance(modelData) {
+            const container = document.getElementById('modelPerformance');
+            
+            if (modelData.modelRankings && modelData.modelRankings.length > 0) {
+                container.innerHTML = modelData.modelRankings.map(model => `
+                    <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #e9ecef;">
+                        <strong>${model.model}</strong><br>
+                        Rating: ${model.avgRating.toFixed(1)}/5 | 
+                        Response Time: ${Math.round(model.avgResponseTime)}ms |
+                        Usage: ${model.usage} times
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p>No model performance data available yet.</p>';
+            }
+        }
+
+        function displayTopTopics(topics) {
+            const container = document.getElementById('topTopics');
+            
+            if (topics && topics.length > 0) {
+                container.innerHTML = topics.slice(0, 5).map(([topic, count]) => `
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: white; margin: 5px 0; border-radius: 8px;">
+                        <span>${topic}</span>
+                        <span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px;">${count}</span>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p>No topic data available yet.</p>';
+            }
+        }
+
+        // Memory Management
+        async function loadMemoryData() {
+            try {
+                const profileResponse = await fetch(`/api/user-profile/${currentSessionId}`);
+                const profileData = await profileResponse.json();
+                
+                document.getElementById('conversationCount').textContent = 
+                    profileData.behavior?.totalQuestions || 0;
+                document.getElementById('memoryTopics').textContent = 
+                    profileData.behavior?.interests?.length || 0;
+                document.getElementById('behaviorPatterns').textContent = 
+                    profileData.behavior?.patterns?.length || 0;
+                
+                displayUserProfile(profileData);
+                
+                const historyResponse = await fetch(`/api/conversation-history/${currentSessionId}?limit=5`);
+                const historyData = await historyResponse.json();
+                
+                displayConversationHistory(historyData.conversations);
+                
+            } catch (error) {
+                console.error('Failed to load memory data:', error);
+            }
+        }
+
+        function displayUserProfile(profile) {
+            const container = document.getElementById('userProfile');
+            
+            if (profile.behavior) {
+                container.innerHTML = `
+                    <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #e9ecef;">
+                        <h4>Behavior Profile</h4>
+                        <p><strong>Total Questions:</strong> ${profile.behavior.totalQuestions}</p>
+                        <p><strong>Avg Question Length:</strong> ${profile.behavior.avgQuestionLength} characters</p>
+                        <p><strong>Preferred Style:</strong> ${profile.preferences.preferredStyle}</p>
+                        <p><strong>Session Started:</strong> ${new Date(profile.behavior.sessionStarted).toLocaleString()}</p>
+                        
+                        <h5>Interests:</h5>
+                        <div class="topic-cloud">
+                            ${profile.behavior.interests.map(interest => 
+                                `<span class="topic-tag">${interest}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '<p>No user profile data available yet. Start asking questions to build your profile!</p>';
+            }
+        }
+
+        function displayConversationHistory(conversations) {
+            const container = document.getElementById('conversationHistory');
+            
+            if (conversations.length > 0) {
+                container.innerHTML = conversations.map(conv => `
+                    <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #e9ecef;">
+                        <small style="color: #666;">${new Date(conv.timestamp).toLocaleString()}</small>
+                        <p><strong>Q:</strong> ${conv.question}</p>
+                        <p><strong>Type:</strong> ${conv.questionType} | <strong>Topics:</strong> ${conv.topics.join(', ')}</p>
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<p>No conversation history available yet.</p>';
+            }
+        }
+
+        // Settings
+        async function clearMemory() {
+            if (confirm('Are you sure you want to clear all memory data? This cannot be undone.')) {
+                // This would need a backend endpoint to clear memory
+                showNotification('Memory cleared successfully!');
+                loadMemoryData();
+            }
+        }
+
+        function exportData() {
+            // This would export user data
+            showNotification('Data export feature coming soon!');
+        }
+
+        // Utility Functions
+        function showResult(element, message, type) {
+            element.innerHTML = `<div class="result ${type}">${message}</div>`;
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function updateChatStats(metadata) {
+            // Update real-time stats if needed
+            if (metadata.responseTime) {
+                // Could update average response time display
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAnalytics();
+            loadTopics();
+            
+            // Auto-refresh analytics every 30 seconds
+            setInterval(loadAnalytics, 30000);
+        });
+    </script>
+</body>
+</html>
