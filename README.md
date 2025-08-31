@@ -131,7 +131,7 @@ uploads/
 
 ## 🖼️ Screenshot
 <p align="center">
-  <img src="public/screenshots/gavina-ai-chatbot.png" alt="Gavina AI Chatbot Screenshot" width="800" />
+  <img src="https://github.com/strivedi4u/gavina/blob/master/data/image.png" alt="Gavina AI Chatbot Screenshot" width="800" />
 </p>
 
 ## 📄 License
