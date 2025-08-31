@@ -2,12 +2,6 @@
 
 ## 📁 Project Structure
 ```text
-├── ADVANCED_RAG_FEATURES.md
-├── BETTER_AI_SETUP.md
-├── FREE_AI_SETUP.md
-├── MyProfileRedme.md
-├── package.json
-├── project.zip
 ├── server.js
 ├── test_api.js
 ├── test_chat.json
@@ -51,21 +45,45 @@ uploads/
 - 📈 **Dashboard & Visualization**
 
 ## 🛠️ Technologies Used
-- **Node.js** (Express.js, Socket.IO)
-├── uploads/
-└── .vscode/
-- **OpenAI GPT-4o** (and other models)
-```
-- **Pinecone** (Vector Database)
-- **Redis** (Memory Management)
-- **Fuse.js** (Fuzzy Search)
-- **Axios** (API Requests)
-- **Cheerio, jsdom** (Web Scraping)
-- **PDF-Parse, Mammoth, Tesseract.js** (Document & OCR Processing)
-- **Winston** (Logging)
-- **Socket.IO** (Real-time features)
-- **node-cron** (Scheduled tasks)
-- **Multer** (File uploads)
+
+<table>
+  <tr>
+    <td><b>Node.js</b></td><td>Express.js, Socket.IO</td>
+  </tr>
+  <tr>
+    <td><b>OpenAI GPT-4o</b></td><td>Advanced language models</td>
+  </tr>
+  <tr>
+    <td><b>Pinecone</b></td><td>Vector Database</td>
+  </tr>
+  <tr>
+    <td><b>Redis</b></td><td>Memory Management</td>
+  </tr>
+  <tr>
+    <td><b>Fuse.js</b></td><td>Fuzzy Search</td>
+  </tr>
+  <tr>
+    <td><b>Axios</b></td><td>API Requests</td>
+  </tr>
+  <tr>
+    <td><b>Cheerio, jsdom</b></td><td>Web Scraping</td>
+  </tr>
+  <tr>
+    <td><b>PDF-Parse, Mammoth, Tesseract.js</b></td><td>Document & OCR Processing</td>
+  </tr>
+  <tr>
+    <td><b>Winston</b></td><td>Logging</td>
+  </tr>
+  <tr>
+    <td><b>Socket.IO</b></td><td>Real-time features</td>
+  </tr>
+  <tr>
+    <td><b>node-cron</b></td><td>Scheduled tasks</td>
+  </tr>
+  <tr>
+    <td><b>Multer</b></td><td>File uploads</td>
+  </tr>
+</table>
 
 ## ⚙️ How It Works
 1. 💬 **User Interaction**: Users interact via API endpoints or the dashboard.
@@ -76,16 +94,19 @@ uploads/
 6. ⏰ **Scheduled Maintenance**: Daily cleanup and analytics tasks run automatically.
 
 ## 🚦 Getting Started
-1. 📦 **Install dependencies**:
-  ```powershell
-  npm install
-  ```
-2. 📝 **Configure environment**: Edit `.env` with your API keys and settings.
-3. ▶️ **Start the server**:
-  ```powershell
-  npm start
-  ```
-4. 🌐 **Access dashboard**: Open [http://localhost:3000](http://localhost:3000)
+
+<div style="border: 2px solid #2980b9; border-radius: 8px; padding: 16px; background: #f8faff;">
+  <ol>
+    <li>📦 <b>Install dependencies</b>:
+      <pre style="background: #222; color: #fff; padding: 8px; border-radius: 4px;">npm install</pre>
+    </li>
+    <li>📝 <b>Configure environment</b>: Edit <code>.env</code> with your API keys and settings.</li>
+    <li>▶️ <b>Start the server</b>:
+      <pre style="background: #222; color: #fff; padding: 8px; border-radius: 4px;">npm start</pre>
+    </li>
+    <li>🌐 <b>Access dashboard</b>: Open <a href="http://localhost:3000">http://localhost:3000</a></li>
+  </ol>
+</div>
 
 ## 📡 API Endpoints
 
